@@ -1,0 +1,184 @@
+<html>
+<body>
+<style>
+    p{
+        color: red;
+    }
+    input {
+      font-size: 11vw;
+        width: 100%;
+        height:11vw;
+        color: red;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+        background-color: black;
+        text-align: center;
+    }
+    input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {-moz-appearance: textfield;}
+    .red-blink {
+        animation: blinkR 1s linear;
+    }
+    @keyframes blinkR {
+  0% { color: red; }
+  25% { color: transparent; }
+  50% { color: red; }
+  75% { color: transparent; }
+}
+    .grn {
+  animation: blinkG 1s linear;
+}
+@keyframes blinkG {
+  0% { color: green; }
+  25% { color: transparent; }
+  50% { color: green; }
+  75% { color: transparent; }
+}
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/jquery-touchswipe@latest/jquery.touchSwipe.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="//rawgit.com/ngryman/jquery.finger/v0.1.2/dist/jquery.finger.js"></script>
+<script>
+
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    $('body').append($('<div>').html('<p>120:00</p>'))
+      $('body').css('background-color','black')
+      $('p').css('font-size','xxx-large')
+      var G={};
+  G.tst=false;
+  G.dur=moment.duration(2, 'hours')
+  G.cdt=moment.duration(2, 'hours').toISOString()
+  G.countdownTime=moment.duration(2, 'hours')
+  function tick() {
+        if (preSec) $('p').text(`${String(Math.floor(G.countdownTime.asMinutes())).padStart(2, '0')}:${preSec}`);
+        else $('p').text(`${String(Math.floor(G.countdownTime.asMinutes())).padStart(2, '0')}:${String(G.countdownTime.seconds()).padStart(2, '0')}`);
+      }
+function save(){
+  console.log('saving',{
+    cor:$('aside').text(),
+    inc:$('footer').text(),
+    sco:$('a').text(),
+    dur:G.dur.toISOString(),
+    tst:G.tst,
+    cdt:G.cdt,
+  })
+}
+    }
+  $(document).ready(function() {
+    var cdI;
+    var delay = 300;
+    var clickCount = 0;
+    var clickTimer;
+    $('p:not(input)').on('tap', function(event) {
+      clickCount++;
+      clickTimer = setTimeout(function() {
+        if (clickCount === 1) {
+          if (!cdI) {//start timer
+            $('p').css('color', 'white');
+            clearInterval(cdI);
+            clearInterval(stop);
+            G.tst=moment().toISOString()
+            G.cdt=G.countdownTime.toISOString()
+            save()
+            stop = setInterval(function() {
+              clearInterval(cdI);
+              clearInterval(stop);
+              cdI = null;
+              $('p').css('color', 'red');
+              blinkRed();
+            },G.countdownTime.asMilliseconds());
+            cdI = setInterval(function() {
+                  G.countdownTime=moment.duration(G.cdt).subtract(moment.duration(moment().diff(moment(G.tst))))
+                  tick()
+            },1000);
+          } else {//stop timer
+            $('p').css('color', 'red');
+            clearInterval(cdI);
+            clearInterval(stop);
+            cdI = null;
+            G.tst=false;
+            G.cdt=G.countdownTime.toISOString()
+            save()
+          }
+        }
+        clickCount = 0;
+      }, delay);
+    });
+    $('p:not(input)').on('doubletap', ()=>{
+      clearTimeout(clickTimer);
+      clearInterval(cdI);
+      clearInterval(stop);
+      cdI = null;
+      $('p').css('color', 'red');
+      previous=[G.countdownTime.asMinutes(),G.countdownTime.seconds()]
+      $('p').html(`<input type="number" value="${Math.floor(G.countdownTime.asMinutes())}" min="1">`);
+      $('input').focus();
+      var tmpStr = $('input').val();
+      $('input').val('');
+      $('input').val(tmpStr);
+            });
+    $('body').on('blur', 'input', function() {
+      clearInterval(cdI);
+      clearInterval(stop);
+      if(previous[0]==Number($(this).val())) hardset(previous[1])
+      else {
+    G.countdownTime=moment.duration(Number($(this).val()), 'minutes')
+    G.dur=moment.duration(Number($(this).val()),'minutes')
+    G.cdt=moment.duration(Number($(this).val()),'minutes').toISOString()
+    G.tst=false
+        tick()
+        save()
+      }
+    });
+
+    $('body').on('keypress','input',function(e) {
+      if (e.which===13)$(this).blur();
+    });
+
+    function blinkRed() {
+  var bI = setInterval(() => $('p').toggleClass('red-blink'), 500);
+  setTimeout(() => {clearInterval(bI);$('p').removeClass('red-blink');}, 3000);
+}
+    var t,cached=true;
+    $('a').on('press', ()=> {
+        if ($('a').text()=='0/0 0%') return
+        result=G.dur.clone().subtract(G.countdownTime.clone())
+        if (Math.floor(result.asMinutes())==0) return
+        newRow=[moment().format('DDMMMHH:mm'),$('a').text(),`${Math.floor(result.asMinutes()).toString()}m`]
+        google.script.run.withSuccessHandler(save=>{
+          $('a').addClass("grn")
+          $('#b tbody').prepend(`<tr>${newRow.map(e=>`<td>${e}</td>`)}</tr>`);
+          delfun($('#b tbody tr:first'))
+          setTimeout(()=>$('a').removeClass('grn'),1000);
+          }).insert(newRow[0],newRow[1],newRow[2])
+        });
+  
+        $('p').on('press', function(e) {
+          $('p').css('color', 'red');
+          clearInterval(cdI);
+          clearInterval(stop);
+          cdI = null;
+          G.tst=false;
+        G.countdownTime=G.dur.clone()
+        G.cdt=G.dur.clone().toISOString()
+      tick()
+      $('aside,footer').text('0')
+      $('a').text('0/0 0%')
+      save()
+        });
+        $('#b').on('press', function(e) {
+          window.open('https://docs.google.com/spreadsheets/d/1F6l4xqtC2xwj9KScobfVhWnrlHYAImO-CuEYKTFoHTs');
+        })
+  });//ready
+</script>
+</body>
+</html>
