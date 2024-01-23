@@ -1,6 +1,6 @@
 var sh=SpreadsheetApp.openById("1F6l4xqtC2xwj9KScobfVhWnrlHYAImO-CuEYKTFoHTs").getSheetByName("History")
 function doGet() {
-    return HtmlService.createTemplateFromFile('index').evaluate().addMetaTag('viewport','width=device-width,initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    return HtmlService.createTemplateFromFile('main').evaluate().addMetaTag('viewport','width=device-width,initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
@@ -13,7 +13,7 @@ function get(){
   var lastRow = sh.getLastRow();
   if (lastRow>1) {
     const data=sh.getRange(2, 1,lastRow-1,sh.getLastColumn()).getValues();
-  return data.map(r =>`<tr>${r.map(c=>`<td>${c}</td>`)}</tr>`);
+  return data.map(r=>`<tr><td></td>${r.map(c=>`<td>${c}</td>`)}</tr>`);
   }else   return ''
   
 }

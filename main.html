@@ -1,0 +1,216 @@
+<!--
+AKfycbzVxBMON9VcQAXWRcOeCIUlxAmnRPhKx_ivEqlkLy0
+https://script.google.com/macros/s/AKfycbzVxBMON9VcQAXWRcOeCIUlxAmnRPhKx_ivEqlkLy0/dev
+AKfycbyrbIy6Es12OBIZinrRHAaJ4a3wNJFKHq-QmruwajQgv8yQyAHW_-LhnysIF1m1_92F
+https://sites.google.com/view/qze
+https://script.google.com/macros/s/AKfycbxqP26BxKCD3PfssNpZM3-yHiLzWw25pbPo9yza7w4a/exec
+\https://script.google.com/macros/s/AKfycbxditpdFH_adpeK0WeR_OOPBSBhnS39zz5QTn_DI6FOpoi4fu2UN5vEV9lDLowISlD26Q/exec
+-->
+<html>
+<head>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000">
+</head>
+<style>
+html,body{
+background-color: black;
+height: 100%;
+width: 100%;
+margin: 0;
+padding: 0;
+}
+main {
+display: flex;
+height: 100%;
+width: 100%;
+margin: 0;
+padding: 0;
+user-select: none;
+font-family: Arial;
+overflow: hidden;
+justify-content: space-between;
+flex-wrap: wrap;
+justify-content: center;
+}
+
+body main>*{
+margin: 0;
+padding: 0;
+justify-content: center;
+transition: all 0.5s ease;
+align-items: center;
+display: flex;
+}
+aside,
+footer {
+background-color: black;
+height: 45%;
+width: 100%;
+justify-content: center;
+font-size: calc(85vh*.45);
+}
+aside {color: green;}
+footer {color: red;}
+a,p{
+height: 10%;
+font-size: 11vw;
+color: gray;
+z-index:10;
+}
+p input{z-index: 100!important; font-size: 11vw;}
+p{
+width: 39.6%;
+}
+a {
+width: 59.6%;
+white-space: nowrap;
+}
+#b{
+color: white;
+width: 100%;
+font-size: 8vw;
+height: 100%;
+display: none;
+}
+#b td {
+word-wrap: break-word;
+white-space: nowrap;
+text-overflow: ellipsis;
+
+}
+.fx{
+display:flex!important;
+}
+@media only screen and (max-width: 600px) {
+#a{
+/*margin-top: -10%;*/
+}
+}
+</style>
+<body>
+<main id=a>
+<aside>0</aside>
+<p>120:00</p><a>0/0 0%</a>
+<footer>0</footer>
+</main>
+<article id=b>
+<table>
+<tbody></tbody>
+</table>
+</article>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/jquery-touchswipe@latest/jquery.touchSwipe.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="//rawgit.com/ngryman/jquery.finger/v0.1.2/dist/jquery.finger.js"></script>
+<script>
+var G={};
+G.tst=false;
+G.dur=moment.duration(2, 'hours')
+G.cdt=moment.duration(2, 'hours').toISOString()
+G.countdownTime=moment.duration(2, 'hours')
+function tick() {
+  $('p').text(`${String(Math.floor(G.countdownTime.asMinutes())).padStart(2,'0')}:${String(G.countdownTime.seconds()).padStart(2,'0')}`);
+}
+function hardset(preSec){
+  $('p').text(`${String(Math.floor(G.countdownTime.asMinutes())).padStart(2,'0')}:${preSec}`);
+}
+function save(){
+  console.log('saving',{
+  cor:$('aside').text(),
+  inc:$('footer').text(),
+  sco:$('a').text(),
+  dur:G.dur.toISOString(),
+  tst:G.tst,
+  cdt:G.cdt,
+  })
+  google.script.run.P({
+  cor:$('aside').text(),
+  inc:$('footer').text(),
+  sco:$('a').text(),
+  dur:G.dur.toISOString(),
+  tst:G.tst,
+  cdt:G.cdt,
+  })  
+
+}
+$(function () {
+try{
+  var P=JSON.parse(<?=P()?>)
+  if(typeof P==='undefined')throw new Error('Data is undefined');
+  $('aside').text(P.cor)//correct
+  $('footer').text(P.inc)//correct
+  $('a').text(P.sco)//score
+  G.dur=moment.duration(P.dur)//dur
+  G.tst=moment(P.tst)//timestamp
+  if(!G.tst||P.tst==false||P.tst=='false') G.countdownTime=moment.duration(P.cdt)
+  else if(moment().isBefore(G.tst.clone().add(G.dur.clone()))){//within quiz periodmoment.duration(moment().diff(moment().subtract(10, 'minutes')))
+  G.countdownTime=moment.duration(P.cdt).subtract(moment.duration(moment().diff(moment(P.tst))))
+  }
+  tick()
+  console.log('retrieved',G,P)
+  }catch(err){
+  console.log('prop cannot use',err)
+  save()
+}
+function delfun(ele){
+  ele.draggable({
+  axis: "x",
+  revert: true,
+  start: function(e,ui){
+  $(this).data("originalPosition", ui.position.left);
+  },
+  drag: function(e,ui){
+  if (ui.position.left > $(window).width()*.4) {
+  google.script.run.del(String($(this).index()+2))
+  $(this).remove()
+  return false;
+  }
+  }
+  });
+}
+$('#b tbody').html(<?=get()?>).promise().done(function(){
+delfun($('tr'))
+});
+$('aside,footer').on('tap', function () {
+$(this).text(parseInt($(this).text())+1);
+update();
+});
+$('aside,footer').on('press',function (e) {
+$(this).text(parseInt($(this).text())-1);
+update()
+});
+function update() {
+  cor=Number($('aside').text())
+  wro=Number($('footer').text())
+$('a').html(`${cor}/${cor+wro} ${cor / (cor + wro) !== Infinity ? Math.round((cor / (cor + wro)) * 100) : 0}%`);
+save()
+}
+});
+$('a, #b').on('tap', function(e) {
+$('#a').toggle()
+$('#b').toggleClass('fx');
+if($('#b').hasClass('fx')){
+  $('#b tbody tr td:nth-child(2)').each(function(){
+    s = moment($(this).text(), "DDMMMHH:mm").fromNow()
+                                                      .replace('an ', '1')
+                                                      .replace('a ', '1')
+                                                      .replace('s', '')
+                                                      .replace(' hour', 'h')
+                                                      .replace(' day', 'd')
+                                                      .replace(' week', 'w')
+                                                      .replace(' month', 'mth')
+                                                      .replace('hour', 'h')
+                                                      .replace('day', 'd')
+                                                      .replace('week', 'w')
+                                                      .replace('month', 'mth')
+                                                      .replace('1go', 'ago');
+    $(this).closest('tr').find('td:nth-child(1)').text(s)
+    $(this).hide()
+  })
+}
+});
+</script>
+<?!= include('clock'); ?>
+<?!= include('delete'); ?>
+</html>
